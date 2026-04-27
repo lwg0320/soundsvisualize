@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sound of Popularity</title>
+    <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style>
+      /* ── hide old scroll rail ── */
+      .rail { display: none !important; }
+
+      /* ── remove rail-driven left margin ── */
+      main { margin-left: 0 !important; }
+
+      /* ── tab bar ── */
+      .tab-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        background: rgba(7, 8, 11, 0.88);
+        border-bottom: 1px solid rgba(255,255,255,.10);
+        backdrop-filter: blur(18px);
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .tab-bar::-webkit-scrollbar { display: none; }
+
+      .tab-btn {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0 20px;
+        height: 52px;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: #9da7b7;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .02em;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color .15s, border-color .15s;
+      }
+      .tab-btn .num {
+        font-size: 10px;
+        font-weight: 800;
+        opacity: .45;
+      }
+      .tab-btn:hover { color: #f6f7fb; }
+      .tab-btn.active {
+        color: #ff4f7b;
+        border-bottom-color: #ff4f7b;
+      }
+
+      /* ── hero genre list button hover ── */
+      .hero-genre-btn:hover {
+        color: #f6f7fb !important;
+        background: rgba(255,255,255,.06) !important;
+      }
+
+        /* ── Trait Game (Page 4) – fingerprint guesser ── */
+
+      /* The game-layout grid: card=left(radar), chart=right(choices) */
+      #trait-game .game-layout {
+        grid-template-columns: minmax(300px, 0.75fr) minmax(380px, 1.25fr);
+        align-items: start;
+      }
+      #trait-game .game-card,
+      #trait-game .game-chart {
+        overflow-y: auto;
+        max-height: 88vh;
+      }
+
+      .tg-header { margin-bottom: 14px; }
+      .tg-score-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+      .tg-reset-btn {
+        font-size: 11px;
+        padding: 0 10px;
+        min-height: 28px;
+        color: var(--muted);
+      }
+      .tg-instructions {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .tg-radar-box {
+        display: flex;
+        justify-content: center;
+        padding: 10px;
+        background: rgba(255,255,255,.03);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 10px;
+        margin-bottom: 12px;
+      }
+      /* Right panel: choices header */
+      .tg-choices-header {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 14px 16px 10px;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        margin-bottom: 12px;
+        font-weight: 800;
+        font-size: 14px;
+        color: var(--ink);
+      }
+      .tg-choices-header small {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .tg-choices {
+        display: grid;
+        gap: 10px;
+        padding: 0 14px 14px;
+      }
+      .tg-choice-btn {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        text-align: left;
+        padding: 12px 14px;
+        background: rgba(255,255,255,.045);
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 10px;
+        color: var(--ink);
+        cursor: pointer;
+        transition: background .14s, border-color .14s;
+      }
+      .tg-choice-btn:hover:not(:disabled) {
+        background: rgba(255,255,255,.09);
+        border-color: rgba(255,255,255,.22);
+      }
+      .tg-choice-btn:disabled { cursor: default; opacity: .85; }
+      .tg-choice-btn.tg-correct {
+        background: rgba(59,224,167,.12) !important;
+        border-color: rgba(59,224,167,.75) !important;
+      }
+      .tg-choice-btn.tg-wrong {
+        background: rgba(255,79,123,.10) !important;
+        border-color: rgba(255,79,123,.75) !important;
+      }
+      .tg-choice-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        pointer-events: none;
+      }
+      .tg-choice-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+      }
+      .tg-choice-num {
+        min-width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.10);
+        border-radius: 5px;
+        font-size: 11px;
+        font-weight: 850;
+        color: var(--ink);
+        flex-shrink: 0;
+      }
+      .tg-choice-name {
+        font-size: 13px;
+        font-weight: 750;
+        color: var(--ink);
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tg-choice-genre {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .tg-choice-embed { pointer-events: all; }
+      .tg-result { margin-top: 12px; }
+      .tg-result-inner {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .tg-result-body {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+      }
+      .tg-result-correct {
+        background: rgba(59,224,167,.10);
+        border: 1px solid rgba(59,224,167,.40);
+      }
+      .tg-result-wrong {
+        background: rgba(255,79,123,.09);
+        border: 1px solid rgba(255,79,123,.40);
+      }
+      .tg-result-icon {
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.2;
+        flex-shrink: 0;
+      }
+      .tg-result-correct .tg-result-icon { color: var(--mint); }
+      .tg-result-wrong  .tg-result-icon { color: var(--hot); }
+      .tg-result-inner strong { font-size: 14px; }
+      .tg-streak-badge {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--gold);
+      }
+      .tg-next-btn {
+        width: 100%;
+        padding: 11px;
+        font-size: 14px;
+        font-weight: 800;
+        border-radius: 10px;
+      }
+
+    
+      .hero.panel-band,
+      .story-section {
+        display: none;
+      }
+      .hero.panel-band.tab-visible {
+        display: grid;
+      }
+      .story-section.tab-visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+
+      <!-- old rail kept so app.js scroll-spy wiring doesn't crash -->
+      <aside class="rail" aria-label="Story navigation" aria-hidden="true">
+        <a href="#traits"       class="rail-mark active" data-section="traits"><span>01</span><b>Traits</b></a>
+        <a href="#compare"      class="rail-mark"        data-section="compare"><span>02</span><b>Compare</b></a>
+        <a href="#fingerprints" class="rail-mark"        data-section="fingerprints"><span>03</span><b>Fingerprints</b></a>
+        <a href="#trait-game"   class="rail-mark"        data-section="trait-game"><span>04</span><b>Trait Game</b></a>
+        <a href="#proximity-game" class="rail-mark"        data-section="proximity-game"><span>05</span><b>Neighbor</b></a>
+        <a href="#takeaways"      class="rail-mark"        data-section="takeaways"><span>06</span><b>Takeaways</b></a>
+      </aside>
+
+      <!-- ── tab bar ── -->
+      <nav class="tab-bar" role="tablist" aria-label="Page tabs">
+        <button class="tab-btn active" role="tab" aria-selected="true"  data-tab="hero">
+          <span class="num">00</span>Overview
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="traits">
+          <span class="num">01</span>Traits
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="compare">
+          <span class="num">02</span>Compare
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="fingerprints">
+          <span class="num">03</span>Fingerprints
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="trait-game">
+          <span class="num">04</span>Trait Game
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="proximity-game">
+          <span class="num">05</span>Neighbor
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="takeaways">
+          <span class="num">06</span>Takeaways
+        </button>
+      </nav>
+
+      <main>
+        <!-- 00 Overview -->
+        <section class="hero panel-band tab-visible" data-tab-id="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Spotify genre fingerprints · Top 20 most popular genres</p>
+            <h1>Every genre sounds like itself.</h1>
+            <p>
+              Across Spotify's 20 most popular genres, the same five audio traits —
+              tempo, speechiness, danceability, energy, and loudness — land in completely
+              different places. A genre's fingerprint is not just a style label; it's a
+              measurable shape. No two genres share the same shape, and the gap between
+              them is often larger than you'd expect.
+            </p>
+            <p>
+              Select any genre from the list to see its radar fingerprint — how it sits
+              above or below the average across all genres on each trait.
+            </p>
+          </div>
+          <div class="hero-visual" id="hero-visual" aria-hidden="true"></div>
+        </section>
+
+        <!-- 01 Traits -->
+        <section id="traits" class="story-section" data-tab-id="traits">
+          <div class="section-head">
+            <p class="eyebrow">Page 1</p>
+            <h2>Five traits that define a genre's sound</h2>
+            <p>
+              Tempo, speechiness, danceability, energy, and loudness are the five Spotify
+              audio features that shape how a genre feels. Select a trait to read its
+              definition, hear a low and high audio sketch, and explore the five real tracks
+              with the highest and lowest values across all genres.
+            </p>
+          </div>
+          <div class="trait-grid" id="trait-grid"></div>
+          <div class="trait-dashboard" id="trait-dashboard"></div>
+        </section>
+
+        <!-- 02 Compare -->
+        <section id="compare" class="story-section compare-section" data-tab-id="compare">
+          <div class="section-head">
+            <p class="eyebrow">Page 2</p>
+            <h2>Head-to-head genre comparison</h2>
+            <p>
+              The left side compares genre identity against the broader field. The right side
+              shows what changes inside each genre when songs become more popular.
+            </p>
+          </div>
+          <div class="compare-controls">
+            <label>
+              Genre A
+              <select id="compare-genre-a"></select>
+            </label>
+            <label>
+              Genre B
+              <select id="compare-genre-b"></select>
+            </label>
+          </div>
+          <div class="comparison-board">
+            <div class="comparison-pane">
+              <div class="pane-title">
+                <span>Genre fingerprint</span>
+                <small>More or less than other genres</small>
+              </div>
+              <button class="pane-detail-btn" aria-expanded="false" aria-controls="genre-explainer">What does this show?</button>
+              <p class="pane-explainer" id="genre-explainer" hidden>
+                Each bar shows how a genre scores on that trait relative to the average across
+                all genres, expressed as a z-score. A positive value means the genre sits above
+                average — for example, a high Energy bar means songs in that genre are measurably
+                more intense than most. A negative value means below average. This is about
+                <em>identity</em>: what makes a genre sound like itself compared to everything else.
+              </p>
+              <div id="genre-compare-chart"></div>
+            </div>
+            <div class="comparison-pane">
+              <div class="pane-title">
+                <span>Popularity fingerprint</span>
+                <small>Top third versus bottom third inside the genre</small>
+              </div>
+              <button class="pane-detail-btn" aria-expanded="false" aria-controls="pop-explainer">What does this show?</button>
+              <p class="pane-explainer" id="pop-explainer" hidden>
+                Each bar shows the difference in that trait between the most popular songs and
+                the least popular songs <em>within the same genre</em>. A positive value means
+                the genre's hits score higher on that trait than its deep cuts — for example, a
+                high Danceability bar means popular songs in that genre are noticeably more
+                danceable than obscure ones. This is about <em>what pushes songs to the top</em>
+                inside a genre, not how the genre compares to others.
+              </p>
+              <div id="pop-compare-chart"></div>
+            </div>
+          </div>
+          <div class="music-strip" id="compare-music"></div>
+        </section>
+
+        <!-- 03 Fingerprints -->
+        <section id="fingerprints" class="story-section" data-tab-id="fingerprints">
+          <div class="section-head">
+            <p class="eyebrow">Page 3</p>
+            <h2>Top genre fingerprints</h2>
+            <p>
+              Sort genres by one of the five traits or by the combined popularity signal.
+              Each fingerprint layers genre identity with the five traits associated with
+              popularity inside that genre.
+            </p>
+          </div>
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <label>
+                Rank by
+                <select id="rank-select"></select>
+              </label>
+              <button id="show-rank-detail" class="pane-detail-btn" aria-expanded="false" type="button">What does this metric mean?</button>
+            </div>
+            <div class="toolbar-toggles">
+              <button id="pop-direction-toggle" class="ghost-button" type="button">Most popular</button>
+              <button id="show-pop-toggle" class="ghost-button" type="button">Show popularity within genre</button>
+              <button id="show-all" class="ghost-button" type="button">Show all genres</button>
+            </div>
+          </div>
+          <div id="rank-detail-box" class="rank-detail-box" hidden></div>
+          <div id="fingerprint-grid" class="fingerprint-grid"></div>
+          <div class="drilldown" id="genre-drilldown"></div>
+        </section>
+
+        <!-- 04 Trait Game -->
+        <section id="trait-game" class="story-section game-section" data-tab-id="trait-game">
+          <div class="section-head">
+            <p class="eyebrow">Page 4</p>
+            <h2>Game 1: match the fingerprint</h2>
+            <p>
+              A real Spotify track's audio fingerprint is shown as a radar chart — five traits
+              mapped to z-scores. Three songs are listed below the radar. One of them is the
+              exact track that generated the fingerprint. Read the shape and pick the right song.
+              After each guess, all three fingerprints are revealed so you can compare.
+            </p>
+          </div>
+          <div class="game-layout">
+            <div id="trait-game-card" class="game-card"></div>
+            <div id="trait-game-chart" class="game-chart"></div>
+          </div>
+        </section>
+
+        <!-- 06 Proximity Game -->
+        <section id="proximity-game" class="story-section game-section" data-tab-id="proximity-game">
+          <div class="section-head">
+            <p class="eyebrow">Page 5</p>
+            <h2>Game 3: find the closest neighbor</h2>
+            <p>
+              A source song is shown with its audio fingerprint. Two candidates are listed.
+              Listen to all three, then pick whichever candidate's five-trait fingerprint
+              sits <em>closest</em> to the source song. Euclidean distance across all five
+              z-scored traits determines the right answer.
+            </p>
+          </div>
+          <div class="game-layout">
+            <div id="proximity-game-card" class="game-card"></div>
+            <div id="proximity-game-chart" class="game-chart"></div>
+          </div>
+        </section>
+
+        <!-- 07 Takeaways -->
+        <section id="takeaways" class="story-section" data-tab-id="takeaways">
+          <div class="section-head">
+            <p class="eyebrow">Page 6</p>
+            <h2>Every genre is different. Every song is different. Patterns still exist.</h2>
+            <p>
+              No two genres share the same fingerprint. No two songs within a genre are identical.
+              But zoom out far enough and structure emerges — clusters of sound, shared tendencies,
+              and traits that pull in the same direction across seemingly unrelated styles.
+            </p>
+          </div>
+          <div id="takeaway-content"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+    <script>
+      (function () {
+        document.querySelectorAll('.pane-detail-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', String(!expanded));
+            document.getElementById(btn.getAttribute('aria-controls')).hidden = expanded;
+          });
+        });
+      })();
+
+      (function () {
+        const tabs   = document.querySelectorAll('.tab-btn');
+        const panels = document.querySelectorAll('[data-tab-id]');
+
+        function showTab(tabId) {
+          tabs.forEach(btn => {
+            const active = btn.dataset.tab === tabId;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-selected', String(active));
+          });
+          panels.forEach(panel => {
+            panel.classList.toggle('tab-visible', panel.dataset.tabId === tabId);
+          });
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+
+        tabs.forEach(btn => {
+          btn.addEventListener('click', () => showTab(btn.dataset.tab));
+        });
+      })();
+    </script>
+  </body>
+</html>
