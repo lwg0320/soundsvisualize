@@ -6,67 +6,19 @@
     <title>Sound of Popularity</title>
     <link rel="icon" href="data:,">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <style>
-      /* ── hide old scroll rail ── */
-      .rail { display: none !important; }
-
-      /* ── remove rail-driven left margin ── */
-      main { margin-left: 0 !important; }
-
-      /* ── tab bar ── */
-      .tab-bar {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        display: flex;
-        background: rgba(7, 8, 11, 0.88);
-        border-bottom: 1px solid rgba(255,255,255,.10);
-        backdrop-filter: blur(18px);
-        overflow-x: auto;
-        scrollbar-width: none;
-      }
-      .tab-bar::-webkit-scrollbar { display: none; }
-
-      .tab-btn {
-        flex: 0 0 auto;
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        padding: 0 20px;
-        height: 52px;
-        background: none;
-        border: none;
-        border-bottom: 2px solid transparent;
-        color: #9da7b7;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: .02em;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: color .15s, border-color .15s;
-      }
-      .tab-btn .num {
-        font-size: 10px;
-        font-weight: 800;
-        opacity: .45;
-      }
-      .tab-btn:hover { color: #f6f7fb; }
-      .tab-btn.active {
-        color: #ff4f7b;
-        border-bottom-color: #ff4f7b;
-      }
-
       /* ── hero genre list button hover ── */
       .hero-genre-btn:hover {
-        color: #f6f7fb !important;
-        background: rgba(255,255,255,.06) !important;
+        color: #ffffff !important;
+        background: rgba(255,255,255,.08) !important;
       }
 
-        /* ── Trait Game (Page 4) – fingerprint guesser ── */
-
-      /* The game-layout grid: card=left(radar), chart=right(choices) */
+      /* ── Trait Game (Page 4) – fingerprint guesser ── */
       #trait-game .game-layout {
         grid-template-columns: minmax(300px, 0.75fr) minmax(380px, 1.25fr);
         align-items: start;
@@ -105,7 +57,6 @@
         border-radius: 10px;
         margin-bottom: 12px;
       }
-      /* Right panel: choices header */
       .tg-choices-header {
         display: flex;
         flex-direction: column;
@@ -134,21 +85,21 @@
         gap: 8px;
         text-align: left;
         padding: 12px 14px;
-        background: rgba(255,255,255,.045);
+        background: rgba(255,255,255,.06);
         border: 1px solid rgba(255,255,255,.10);
-        border-radius: 10px;
+        border-radius: 8px;
         color: var(--ink);
         cursor: pointer;
         transition: background .14s, border-color .14s;
       }
       .tg-choice-btn:hover:not(:disabled) {
-        background: rgba(255,255,255,.09);
+        background: rgba(255,255,255,.10);
         border-color: rgba(255,255,255,.22);
       }
       .tg-choice-btn:disabled { cursor: default; opacity: .85; }
       .tg-choice-btn.tg-correct {
-        background: rgba(59,224,167,.12) !important;
-        border-color: rgba(59,224,167,.75) !important;
+        background: rgba(30,215,96,.12) !important;
+        border-color: rgba(30,215,96,.75) !important;
       }
       .tg-choice-btn.tg-wrong {
         background: rgba(255,79,123,.10) !important;
@@ -201,7 +152,7 @@
         align-items: flex-start;
         gap: 10px;
         padding: 12px 14px;
-        border-radius: 10px;
+        border-radius: 8px;
         margin-bottom: 10px;
         font-size: 13px;
         line-height: 1.5;
@@ -213,8 +164,8 @@
         flex: 1;
       }
       .tg-result-correct {
-        background: rgba(59,224,167,.10);
-        border: 1px solid rgba(59,224,167,.40);
+        background: rgba(30,215,96,.10);
+        border: 1px solid rgba(30,215,96,.40);
       }
       .tg-result-wrong {
         background: rgba(255,79,123,.09);
@@ -239,10 +190,9 @@
         padding: 11px;
         font-size: 14px;
         font-weight: 800;
-        border-radius: 10px;
+        border-radius: 8px;
       }
 
-    
       .hero.panel-band,
       .story-section {
         display: none;
@@ -268,30 +218,53 @@
         <a href="#takeaways"      class="rail-mark"        data-section="takeaways"><span>06</span><b>Takeaways</b></a>
       </aside>
 
-      <!-- ── tab bar ── -->
-      <nav class="tab-bar" role="tablist" aria-label="Page tabs">
-        <button class="tab-btn active" role="tab" aria-selected="true"  data-tab="hero">
-          <span class="num">00</span>Overview
-        </button>
-        <button class="tab-btn" role="tab" aria-selected="false" data-tab="traits">
-          <span class="num">01</span>Traits
-        </button>
-        <button class="tab-btn" role="tab" aria-selected="false" data-tab="compare">
-          <span class="num">02</span>Compare
-        </button>
-        <button class="tab-btn" role="tab" aria-selected="false" data-tab="fingerprints">
-          <span class="num">03</span>Fingerprints
-        </button>
-        <button class="tab-btn" role="tab" aria-selected="false" data-tab="trait-game">
-          <span class="num">04</span>Trait Game
-        </button>
-        <button class="tab-btn" role="tab" aria-selected="false" data-tab="proximity-game">
-          <span class="num">05</span>Neighbor
-        </button>
-        <button class="tab-btn" role="tab" aria-selected="false" data-tab="takeaways">
-          <span class="num">06</span>Takeaways
-        </button>
-      </nav>
+      <!-- ── sidebar navigation ── -->
+      <aside class="sidebar" aria-label="Main navigation">
+        <div class="sidebar-brand">
+          <svg class="sidebar-logo" viewBox="0 0 32 32" aria-hidden="true">
+            <circle cx="16" cy="16" r="15"/>
+            <path fill="#000" d="M22.9 21.8c-.3 0-.5-.1-.7-.2-3.5-2.1-7.9-2.6-13.1-1.4-.3.1-.6-.1-.7-.4-.1-.3.1-.6.4-.7 5.6-1.3 10.4-.8 14.2 1.6.3.2.4.5.2.8-.1.2-.2.3-.3.3zm1.5-3.7c-.3 0-.6-.1-.8-.3-4-2.4-10.1-3.1-14.9-1.7-.4.1-.7-.1-.9-.5-.1-.4.1-.7.5-.9 5.4-1.6 12.1-.8 16.7 1.9.3.2.5.6.3.9-.2.4-.5.6-.9.6zm.1-3.8c-4.8-2.9-12.8-3.1-17.4-1.7-.5.1-1-.1-1.1-.6-.1-.5.1-1 .6-1.1 5.3-1.6 14-.4 19.5 1.9.4.2.7.7.5 1.1-.2.5-.7.7-1.1.5z"/>
+          </svg>
+          <span>Sounds<br>Visualize</span>
+        </div>
+
+        <nav class="sidebar-nav" role="tablist" aria-label="Page tabs">
+          <span class="sidebar-section-label">Explore</span>
+          <button class="sidebar-btn active" role="tab" aria-selected="true" data-tab="hero">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3L2 9.5V18h5.5v-4.5h5V18H18V9.5z"/></svg>
+            Overview
+          </button>
+          <button class="sidebar-btn" role="tab" aria-selected="false" data-tab="traits">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="11" width="3.5" height="7" rx="1"/><rect x="8.25" y="7" width="3.5" height="11" rx="1"/><rect x="14.5" y="3" width="3.5" height="15" rx="1"/></svg>
+            01 · Traits
+          </button>
+          <button class="sidebar-btn" role="tab" aria-selected="false" data-tab="compare">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 5h7v10H2V5zm9 0h7v10h-7V5z"/></svg>
+            02 · Compare
+          </button>
+          <button class="sidebar-btn" role="tab" aria-selected="false" data-tab="fingerprints">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2l1.8 5.5H18l-4.9 3.6 1.9 5.6L10 13.2l-5 3.5 1.9-5.6L2 7.5h6.2z"/></svg>
+            03 · Fingerprints
+          </button>
+          <span class="sidebar-section-label" style="margin-top:8px">Games</span>
+          <button class="sidebar-btn" role="tab" aria-selected="false" data-tab="trait-game">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1a9 9 0 100 18A9 9 0 0010 1zm0 4a5 5 0 110 10A5 5 0 0110 5zm0 3a2 2 0 100 4 2 2 0 000-4z"/></svg>
+            04 · Match Fingerprint
+          </button>
+          <button class="sidebar-btn" role="tab" aria-selected="false" data-tab="proximity-game">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.5"/><circle cx="3.5" cy="4.5" r="2"/><circle cx="16.5" cy="4.5" r="2"/><circle cx="3.5" cy="15.5" r="2"/><circle cx="16.5" cy="15.5" r="2"/></svg>
+            05 · Find Neighbor
+          </button>
+        </nav>
+
+        <nav class="sidebar-nav" role="navigation" style="margin-top:auto">
+          <span class="sidebar-section-label">Summary</span>
+          <button class="sidebar-btn" role="tab" aria-selected="false" data-tab="takeaways">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2a5.5 5.5 0 00-2.5 10.4V14h5v-1.6A5.5 5.5 0 0010 2zM8 15h4v.5a.5.5 0 01-1 0V16H9v-.5a.5.5 0 01-1 0V15z"/></svg>
+            06 · Takeaways
+          </button>
+        </nav>
+      </aside>
 
       <main>
         <!-- 00 Overview -->
@@ -438,7 +411,7 @@
         <section id="proximity-game" class="story-section game-section" data-tab-id="proximity-game">
           <div class="section-head">
             <p class="eyebrow">Page 5</p>
-            <h2>Game 3: find the closest neighbor</h2>
+            <h2>Game 2: find the closest neighbor</h2>
             <p>
               A source song is shown with its audio fingerprint. Two candidates are listed.
               Listen to all three, then pick whichever candidate's five-trait fingerprint
@@ -482,7 +455,7 @@
       })();
 
       (function () {
-        const tabs   = document.querySelectorAll('.tab-btn');
+        const tabs   = document.querySelectorAll('.sidebar-btn[data-tab]');
         const panels = document.querySelectorAll('[data-tab-id]');
 
         function showTab(tabId) {

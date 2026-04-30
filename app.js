@@ -240,10 +240,10 @@ function renderHero() {
     .style("width", "100%")
     .style("text-align", "left")
     .style("padding", "7px 14px")
-    .style("background", d => d.genre === state.pinnedHeroGenre ? "rgba(255,79,123,.14)" : "none")
+    .style("background", d => d.genre === state.pinnedHeroGenre ? "rgba(30,215,96,.12)" : "none")
     .style("border", "none")
-    .style("border-left", d => d.genre === state.pinnedHeroGenre ? "3px solid #ff4f7b" : "3px solid transparent")
-    .style("color", d => d.genre === state.pinnedHeroGenre ? "#ff4f7b" : "#9da7b7")
+    .style("border-left", d => d.genre === state.pinnedHeroGenre ? "3px solid #1ed760" : "3px solid transparent")
+    .style("color", d => d.genre === state.pinnedHeroGenre ? "#1ed760" : "#b3b3b3")
     .style("font-size", "13px")
     .style("font-weight", "700")
     .style("cursor", "pointer")
@@ -269,7 +269,7 @@ function renderHero() {
   radarPanel.append("div")
     .style("font-size", "18px")
     .style("font-weight", "850")
-    .style("color", "#ff4f7b")
+    .style("color", "#1ed760")
     .style("margin-bottom", "4px")
     .text(titleCase(pinnedRow.genre));
 
@@ -352,8 +352,8 @@ function drawHeroRadar(host, row, keys) {
   // Filled polygon
   const polygon = svg.append("polygon")
     .attr("points", pointStr)
-    .attr("fill", "rgba(255,79,123,.15)")
-    .attr("stroke", "#ff4f7b")
+    .attr("fill", "rgba(30,215,96,.12)")
+    .attr("stroke", "#1ed760")
     .attr("stroke-width", 2.5)
     .attr("stroke-linejoin", "round");
 
@@ -501,7 +501,7 @@ function drawComparisonChart(selector, rows, mode) {
   const keys = activeFeatureKeys;
   const x = d3.scaleLinear().domain([-2.8, 2.8]).range([margin.left, width - margin.right]).clamp(true);
   const y = d3.scaleBand().domain(keys).range([margin.top, height - margin.bottom]).padding(0.28);
-  const colors = new Map([[state.compareGenreA, "#ff4f7b"], [state.compareGenreB, "#55c7ff"]]);
+  const colors = new Map([[state.compareGenreA, "#1ed760"], [state.compareGenreB, "#55c7ff"]]);
 
   svg.append("line").attr("x1", x(0)).attr("x2", x(0)).attr("y1", margin.top - 10).attr("y2", height - margin.bottom).attr("stroke", "rgba(255,255,255,.34)").attr("stroke-dasharray", "4,4");
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(5));
