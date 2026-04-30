@@ -228,9 +228,9 @@ h3 {
 }
 
 .trait-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .trait-card,
@@ -897,7 +897,7 @@ select {
   gap: 6px;
   padding: 14px 18px;
   background: var(--panel);
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   color: var(--muted);
   text-align: left;
@@ -909,16 +909,16 @@ select {
 .trait-pill-btn:hover {
   background: var(--panel-2);
   color: var(--ink);
+  border-color: color-mix(in srgb, var(--trait-color) 40%, transparent);
 }
 .trait-pill-btn.active {
   background: var(--panel-2);
   color: var(--ink);
-  border-color: transparent;
+  border-color: var(--trait-color);
 }
 .trait-pill-label {
   font-size: 16px;
   font-weight: 800;
-  color: var(--ink);
 }
 .trait-pill-def {
   font-size: 12px;
@@ -957,8 +957,8 @@ select {
   text-transform: uppercase;
   letter-spacing: .04em;
 }
-.ref-high { color: var(--ink); }
-.ref-low  { color: var(--ink); }
+.info-block .ref-high,
+.info-block .ref-low { color: var(--ink); }
 .ref-subhead {
   font-size: 12px;
   color: var(--muted);

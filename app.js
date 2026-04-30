@@ -380,22 +380,20 @@ function drawHeroRadar(host, row, keys) {
 
 function renderTraits() {
   const grid = d3.select("#trait-grid").html("");
-  // Use a horizontal pill row instead of the old card grid
-  grid.style("display", "flex").style("flex-wrap", "wrap").style("gap", "10px");
 
   const cards = grid.selectAll("button")
     .data(topTraitKeys.map(key => featureByKey(key)))
     .join("button")
     .attr("class", d => `trait-pill-btn ${d.key === state.selectedTrait ? "active" : ""}`)
     .attr("type", "button")
-    .style("border-left", d => `4px solid ${d.color}`)
+    .style("--trait-color", d => d.color)
     .on("click", (_, feature) => {
       state.selectedTrait = feature.key;
       renderTraits();
       renderTraitDashboard();
     });
 
-  cards.append("span").attr("class", "trait-pill-label").text(d => d.label);
+  cards.append("span").attr("class", "trait-pill-label").style("color", d => d.color).text(d => d.label);
   cards.append("span").attr("class", "trait-pill-def").text(d => d.definition);
 }
 
@@ -443,13 +441,11 @@ function renderTraitDashboard() {
     <div class="trait-dash-layout">
       <div class="info-block ref-block">
         <h4 class="ref-header ref-high"><span style="color:var(--green)">&#9650;</span> Highest ${feature.label} tracks</h4>
-        <p class="ref-subhead">Songs with the most ${feature.label.toLowerCase()} across all genres</p>
         ${songRow(highSongs)}
       </div>
 
       <div class="info-block ref-block">
         <h4 class="ref-header ref-low"><span style="color:var(--hot)">&#9660;</span> Lowest ${feature.label} tracks</h4>
-        <p class="ref-subhead">Songs with the least ${feature.label.toLowerCase()} across all genres</p>
         ${songRow(lowSongs)}
       </div>
     </div>
@@ -870,14 +866,11 @@ function renderTraitGame() {
   }
 
   const round = game.currentRound;
-  const streak = game.streak || 0;
-  const streakLabel = streak > 0 ? `🔥 ${streak} in a row` : "";
-
   // LEFT CARD: header + radar + result area
   cardHost.innerHTML = `
     <div class="tg-header">
       <div class="tg-score-row">
-        <div class="game-score">Score ${game.score}${streakLabel ? " · " + streakLabel : ""}</div>
+        <div class="game-score">Score ${game.score}</div>
         <button class="ghost-button tg-reset-btn" type="button">Reset</button>
       </div>
       <div class="tg-instructions">Which song matches this fingerprint?</div>
@@ -971,9 +964,8 @@ function answerFingerprintRound(round, choice) {
         <strong>${correct ? "Correct!" : "Wrong!"}</strong>
         ${correct
           ? `<span>${escapeHtml(round.answer.name)} matches the fingerprint.</span>`
-          : `<span>The correct answer was <strong>${escapeHtml(round.answer.name)}</strong>. Streak resets.</span>`
+          : `<span>The correct answer was <strong>${escapeHtml(round.answer.name)}</strong>.</span>`
         }
-        ${correct && game.streak > 1 ? `<span class="tg-streak-badge">🔥 ${game.streak} in a row!</span>` : ""}
       </div>
     </div>
     <button class="primary-button tg-next-btn" type="button">Next round →</button>
@@ -1182,8 +1174,8 @@ function drawFingerprintRadar(hostSel, sketch, showLabel) {
 
   svg.append("polygon")
     .attr("points", pointStr)
-    .attr("fill", "rgba(255,79,123,.18)")
-    .attr("stroke", "#ff4f7b")
+    .attr("fill", "rgba(30,215,96,.12)")
+    .attr("stroke", "#1ed760")
     .attr("stroke-width", 2)
     .attr("stroke-linejoin", "round")
     .style("opacity", 0)
@@ -1555,14 +1547,11 @@ function renderProximityGame() {
   }
 
   const round = game.currentRound;
-  const streak = game.streak || 0;
-  const streakLabel = streak > 0 ? ` · 🔥 ${streak} in a row` : "";
-
   // LEFT CARD: source song + fingerprint
   cardHost.innerHTML = `
     <div class="tg-header">
       <div class="tg-score-row">
-        <div class="game-score">Score ${game.score}${streakLabel}</div>
+        <div class="game-score">Score ${game.score}</div>
         <button class="ghost-button tg-reset-btn" type="button">Reset</button>
       </div>
       <div class="tg-instructions">Which candidate is the closest neighbor?</div>
@@ -1661,7 +1650,6 @@ function answerProximityRound(round, choice) {
           ? `<span>${escapeHtml(round.answer.name.split(" – ")[0])} is the nearest neighbor (distance ${round.answer.dist.toFixed(2)}).</span>`
           : `<span>The closer neighbor was <strong>${escapeHtml(round.answer.name.split(" – ")[0])}</strong> (dist ${round.answer.dist.toFixed(2)} vs ${round.choices.find(c => c.id !== round.answer.id)?.dist.toFixed(2)}).</span>`
         }
-        ${correct && game.streak > 1 ? `<span class="tg-streak-badge">🔥 ${game.streak} in a row!</span>` : ""}
       </div>
     </div>
     <button class="primary-button tg-next-btn" type="button" style="margin-top:12px">Next round →</button>
