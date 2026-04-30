@@ -441,20 +441,14 @@ function renderTraitDashboard() {
 
   const html = `
     <div class="trait-dash-layout">
-      <div class="info-block trait-about">
-        <h4>${feature.label}</h4>
-        <p>${feature.definition}</p>
-        <p class="producer-note">${feature.producer}</p>
-      </div>
-
       <div class="info-block ref-block">
-        <h4 class="ref-header ref-high">&#9650; Highest ${feature.label} tracks</h4>
+        <h4 class="ref-header ref-high"><span style="color:var(--green)">&#9650;</span> Highest ${feature.label} tracks</h4>
         <p class="ref-subhead">Songs with the most ${feature.label.toLowerCase()} across all genres</p>
         ${songRow(highSongs)}
       </div>
 
       <div class="info-block ref-block">
-        <h4 class="ref-header ref-low">&#9660; Lowest ${feature.label} tracks</h4>
+        <h4 class="ref-header ref-low"><span style="color:var(--hot)">&#9660;</span> Lowest ${feature.label} tracks</h4>
         <p class="ref-subhead">Songs with the least ${feature.label.toLowerCase()} across all genres</p>
         ${songRow(lowSongs)}
       </div>

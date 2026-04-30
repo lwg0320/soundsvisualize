@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sound of Popularity</title>
+    <title>Musical Fingerprints</title>
     <link rel="icon" href="data:,">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -220,14 +220,6 @@
 
       <!-- ── sidebar navigation ── -->
       <aside class="sidebar" aria-label="Main navigation">
-        <div class="sidebar-brand">
-          <svg class="sidebar-logo" viewBox="0 0 32 32" aria-hidden="true">
-            <circle cx="16" cy="16" r="15"/>
-            <path fill="#000" d="M22.9 21.8c-.3 0-.5-.1-.7-.2-3.5-2.1-7.9-2.6-13.1-1.4-.3.1-.6-.1-.7-.4-.1-.3.1-.6.4-.7 5.6-1.3 10.4-.8 14.2 1.6.3.2.4.5.2.8-.1.2-.2.3-.3.3zm1.5-3.7c-.3 0-.6-.1-.8-.3-4-2.4-10.1-3.1-14.9-1.7-.4.1-.7-.1-.9-.5-.1-.4.1-.7.5-.9 5.4-1.6 12.1-.8 16.7 1.9.3.2.5.6.3.9-.2.4-.5.6-.9.6zm.1-3.8c-4.8-2.9-12.8-3.1-17.4-1.7-.5.1-1-.1-1.1-.6-.1-.5.1-1 .6-1.1 5.3-1.6 14-.4 19.5 1.9.4.2.7.7.5 1.1-.2.5-.7.7-1.1.5z"/>
-          </svg>
-          <span>Sounds<br>Visualize</span>
-        </div>
-
         <nav class="sidebar-nav" role="tablist" aria-label="Page tabs">
           <span class="sidebar-section-label">Explore</span>
           <button class="sidebar-btn active" role="tab" aria-selected="true" data-tab="hero">
@@ -255,10 +247,7 @@
             <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.5"/><circle cx="3.5" cy="4.5" r="2"/><circle cx="16.5" cy="4.5" r="2"/><circle cx="3.5" cy="15.5" r="2"/><circle cx="16.5" cy="15.5" r="2"/></svg>
             05 · Find Neighbor
           </button>
-        </nav>
-
-        <nav class="sidebar-nav" role="navigation" style="margin-top:auto">
-          <span class="sidebar-section-label">Summary</span>
+          <span class="sidebar-section-label" style="margin-top:8px">Summary</span>
           <button class="sidebar-btn" role="tab" aria-selected="false" data-tab="takeaways">
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2a5.5 5.5 0 00-2.5 10.4V14h5v-1.6A5.5 5.5 0 0010 2zM8 15h4v.5a.5.5 0 01-1 0V16H9v-.5a.5.5 0 01-1 0V15z"/></svg>
             06 · Takeaways
@@ -270,18 +259,16 @@
         <!-- 00 Overview -->
         <section class="hero panel-band tab-visible" data-tab-id="hero">
           <div class="hero-copy">
-            <p class="eyebrow">Spotify genre fingerprints · Top 20 most popular genres</p>
-            <h1>Every genre sounds like itself.</h1>
+            <h1>Musical Fingerprints</h1>
+            <p class="hero-authors">James Baker, David Ge, Melinda Yao, Stella Zhai</p>
             <p>
-              Across Spotify's 20 most popular genres, the same five audio traits —
-              tempo, speechiness, danceability, energy, and loudness — land in completely
-              different places. A genre's fingerprint is not just a style label; it's a
-              measurable shape. No two genres share the same shape, and the gap between
-              them is often larger than you'd expect.
+              Spotify hosts over 100 million tracks on their platform. Our project analyzes a dataset of over 100,000 unique songs across over 100 genres. Each song has its own distinct, quantitative audio features. We chose to focus on five traits in particular—tempo, speechiness, danceability, energy, and loudness.
             </p>
             <p>
-              Select any genre from the list to see its radar fingerprint — how it sits
-              above or below the average across all genres on each trait.
+              With these audio traits, we created musical “fingerprints” for each genre in the form of radar charts. We blend the visual with the auditory, combining these geometric representations with playable Spotify embeds, so you can hear how these abstract traits correspond with the actual music.
+            </p>
+            <p>
+              We hope you enjoy!
             </p>
           </div>
           <div class="hero-visual" id="hero-visual" aria-hidden="true"></div>
@@ -290,13 +277,11 @@
         <!-- 01 Traits -->
         <section id="traits" class="story-section" data-tab-id="traits">
           <div class="section-head">
-            <p class="eyebrow">Page 1</p>
-            <h2>Five traits that define a genre's sound</h2>
+            <h2>Spotify Audio Features Explained</h2>
             <p>
               Tempo, speechiness, danceability, energy, and loudness are the five Spotify
-              audio features that shape how a genre feels. Select a trait to read its
-              definition, hear a low and high audio sketch, and explore the five real tracks
-              with the highest and lowest values across all genres.
+              audio features that shape how a song and genre feels. Select a trait to explore the five real tracks
+              with the highest and lowest values of the trait across all genres.
             </p>
           </div>
           <div class="trait-grid" id="trait-grid"></div>
@@ -306,7 +291,6 @@
         <!-- 02 Compare -->
         <section id="compare" class="story-section compare-section" data-tab-id="compare">
           <div class="section-head">
-            <p class="eyebrow">Page 2</p>
             <h2>Head-to-head genre comparison</h2>
             <p>
               The left side compares genre identity against the broader field. The right side
@@ -362,7 +346,6 @@
         <!-- 03 Fingerprints -->
         <section id="fingerprints" class="story-section" data-tab-id="fingerprints">
           <div class="section-head">
-            <p class="eyebrow">Page 3</p>
             <h2>Top genre fingerprints</h2>
             <p>
               Sort genres by one of the five traits or by the combined popularity signal.
@@ -392,13 +375,9 @@
         <!-- 04 Trait Game -->
         <section id="trait-game" class="story-section game-section" data-tab-id="trait-game">
           <div class="section-head">
-            <p class="eyebrow">Page 4</p>
-            <h2>Game 1: match the fingerprint</h2>
+            <h2>Game 1: Guess the song</h2>
             <p>
-              A real Spotify track's audio fingerprint is shown as a radar chart — five traits
-              mapped to z-scores. Three songs are listed below the radar. One of them is the
-              exact track that generated the fingerprint. Read the shape and pick the right song.
-              After each guess, all three fingerprints are revealed so you can compare.
+              A Spotify track's audio fingerprint is shown as a radar chart. Listen to the three songs, and pick the song that is depicted in the fingerprint. After your guess, all three fingerprints are revealed so you can compare.
             </p>
           </div>
           <div class="game-layout">
@@ -410,8 +389,7 @@
         <!-- 06 Proximity Game -->
         <section id="proximity-game" class="story-section game-section" data-tab-id="proximity-game">
           <div class="section-head">
-            <p class="eyebrow">Page 5</p>
-            <h2>Game 2: find the closest neighbor</h2>
+            <h2>Game 2: Find the similar song</h2>
             <p>
               A source song is shown with its audio fingerprint. Two candidates are listed.
               Listen to all three, then pick whichever candidate's five-trait fingerprint
@@ -428,8 +406,7 @@
         <!-- 07 Takeaways -->
         <section id="takeaways" class="story-section" data-tab-id="takeaways">
           <div class="section-head">
-            <p class="eyebrow">Page 6</p>
-            <h2>Every genre is different. Every song is different. Patterns still exist.</h2>
+            <h2>Takeaways</h2>
             <p>
               No two genres share the same fingerprint. No two songs within a genre are identical.
               But zoom out far enough and structure emerges — clusters of sound, shared tendencies,
