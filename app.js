@@ -455,10 +455,310 @@ function renderTraitDashboard() {
   host.innerHTML = html;
 }
 
+// ── Head-to-head comparison state ──────────────────────────────────────────
+const compareState = {
+  mode: "genre",          // "genre" | "pop"
+  showIndividual: false,  // pin individual dots
+};
+
+function initCompareControls() {
+  document.querySelector("#compare-mode-genre").addEventListener("click", () => {
+    compareState.mode = "genre";
+    document.querySelector("#compare-mode-genre").classList.add("active");
+    document.querySelector("#compare-mode-pop").classList.remove("active");
+    drawHead2Head();
+  });
+  document.querySelector("#compare-mode-pop").addEventListener("click", () => {
+    compareState.mode = "pop";
+    document.querySelector("#compare-mode-pop").classList.add("active");
+    document.querySelector("#compare-mode-genre").classList.remove("active");
+    drawHead2Head();
+  });
+  document.querySelector("#compare-show-individual").addEventListener("click", event => {
+    compareState.showIndividual = !compareState.showIndividual;
+    event.currentTarget.classList.toggle("active", compareState.showIndividual);
+    event.currentTarget.textContent = compareState.showIndividual ? "Hide individual values" : "Show individual values";
+    drawHead2Head();
+  });
+}
+
 function renderComparison() {
-  drawComparisonChart("#genre-compare-chart", [state.byGenre.get(state.compareGenreA), state.byGenre.get(state.compareGenreB)], "genre");
-  drawComparisonChart("#pop-compare-chart", [state.byPopularGenre.get(state.compareGenreA), state.byPopularGenre.get(state.compareGenreB)], "popular");
+  // Lazy-init the compare controls once
+  if (!renderComparison._ready) {
+    initCompareControls();
+    renderComparison._ready = true;
+  }
+  drawHead2Head();
   renderCompareMusic();
+}
+
+function drawHead2Head() {
+  const rowsA_genre = state.byGenre.get(state.compareGenreA);
+  const rowsB_genre = state.byGenre.get(state.compareGenreB);
+  const rowsA_pop   = state.byPopularGenre.get(state.compareGenreA);
+  const rowsB_pop   = state.byPopularGenre.get(state.compareGenreB);
+  if (!rowsA_genre || !rowsB_genre) return;
+
+  const rowA = compareState.mode === "genre" ? rowsA_genre : rowsA_pop;
+  const rowB = compareState.mode === "genre" ? rowsB_genre : rowsB_pop;
+
+  const colorA = "#1ed760";
+  const colorB = "#55c7ff";
+  const host = d3.select("#head2head-chart").html("");
+
+  const width  = 700;
+  const height = 380;
+  const margin = { top: 52, right: 48, bottom: 44, left: 148 };
+  const keys   = activeFeatureKeys;
+
+  const svg = host.append("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .attr("width", "100%");
+
+  // Compute differences: A − B
+  const diffs = keys.map(key => ({
+    key,
+    diff: rowA[key] - rowB[key],
+    valA: rowA[key],
+    valB: rowB[key],
+  }));
+
+  const maxAbs = Math.max(d3.max(diffs, d => Math.abs(d.diff)), 0.5);
+  const xDomain = [-maxAbs * 1.15, maxAbs * 1.15];
+
+  const x = d3.scaleLinear().domain(xDomain).range([margin.left, width - margin.right]).clamp(true);
+  const y = d3.scaleBand().domain(keys).range([margin.top, height - margin.bottom]).padding(0.32);
+
+  // ── Legend / header ─────────────────────────────────────────────────────
+  const legend = svg.append("g").attr("transform", `translate(${margin.left}, 18)`);
+
+  // Genre A pill
+  legend.append("rect").attr("x", 0).attr("y", 0).attr("width", 12).attr("height", 12).attr("rx", 2).attr("fill", colorA);
+  legend.append("text").attr("x", 17).attr("dy", "0.82em").attr("fill", colorA).attr("font-size", 13).attr("font-weight", 800).text(titleCase(state.compareGenreA));
+
+  const labelAWidth = titleCase(state.compareGenreA).length * 8.2 + 26;
+
+  legend.append("text").attr("x", labelAWidth).attr("dy", "0.82em").attr("fill", "#6b7280").attr("font-size", 12).attr("font-weight", 700).text("leads →");
+  const leadLabelWidth = labelAWidth + 56;
+
+  // center vs label
+  const midX = (width - margin.left - margin.right) / 2;
+  legend.append("text").attr("x", midX).attr("dy", "0.82em").attr("fill", "#9da7b7").attr("font-size", 11).attr("font-weight", 700).attr("text-anchor", "middle").text("← tied →");
+
+  // Genre B
+  const rightX = width - margin.left - margin.right;
+  legend.append("text").attr("x", rightX).attr("dy", "0.82em").attr("fill", "#6b7280").attr("font-size", 12).attr("font-weight", 700).attr("text-anchor", "end").text("← leads");
+  legend.append("rect").attr("x", rightX + 4).attr("y", 0).attr("width", 12).attr("height", 12).attr("rx", 2).attr("fill", colorB);
+  legend.append("text").attr("x", rightX + 20).attr("dy", "0.82em").attr("fill", colorB).attr("font-size", 13).attr("font-weight", 800).text(titleCase(state.compareGenreB));
+
+  // ── Zero line ────────────────────────────────────────────────────────────
+  svg.append("line")
+    .attr("x1", x(0)).attr("x2", x(0))
+    .attr("y1", margin.top - 8).attr("y2", height - margin.bottom)
+    .attr("stroke", "rgba(255,255,255,.30)")
+    .attr("stroke-dasharray", "4,3");
+
+  // ── Bottom axis ───────────────────────────────────────────────────────────
+  svg.append("g")
+    .attr("class", "axis")
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(6).tickFormat(d => (d >= 0 ? "+" : "") + d.toFixed(1)));
+
+  // ── Trait labels ─────────────────────────────────────────────────────────
+  svg.append("g").selectAll("text")
+    .data(keys)
+    .join("text")
+    .attr("x", margin.left - 14)
+    .attr("y", key => y(key) + y.bandwidth() / 2)
+    .attr("dy", "0.32em")
+    .attr("text-anchor", "end")
+    .attr("fill", key => featureByKey(key).color)
+    .attr("font-weight", 800)
+    .attr("font-size", 13)
+    .text(key => featureByKey(key).label);
+
+  // ── Difference bars ───────────────────────────────────────────────────────
+  const barHeight = y.bandwidth();
+
+  const barGroups = svg.selectAll("g.h2h-bar")
+    .data(diffs)
+    .join("g")
+    .attr("class", "h2h-bar");
+
+  // Background band (alternating subtle rows)
+  barGroups.append("rect")
+    .attr("x", margin.left)
+    .attr("y", d => y(d.key) - (y.step() - barHeight) / 2)
+    .attr("width", width - margin.left - margin.right)
+    .attr("height", y.step())
+    .attr("fill", (_, i) => i % 2 === 0 ? "rgba(255,255,255,.025)" : "transparent");
+
+  // Bar fill
+  const bars = barGroups.append("rect")
+    .attr("class", "diff-bar")
+    .attr("x", x(0))
+    .attr("y", d => y(d.key) + barHeight * 0.15)
+    .attr("height", barHeight * 0.70)
+    .attr("rx", 3)
+    .attr("width", 0)
+    .attr("fill", d => d.diff >= 0 ? colorA : colorB)
+    .attr("opacity", 0.85);
+
+  // Animate bars
+  bars.transition().duration(600).ease(d3.easeCubicOut)
+    .attr("x", d => d.diff >= 0 ? x(0) : x(d.diff))
+    .attr("width", d => Math.abs(x(d.diff) - x(0)));
+
+  // Difference value label
+  const diffLabels = barGroups.append("text")
+    .attr("class", "diff-label")
+    .attr("y", d => y(d.key) + y.bandwidth() / 2)
+    .attr("dy", "0.35em")
+    .attr("font-size", 11)
+    .attr("font-weight", 800)
+    .attr("fill", d => d.diff >= 0 ? colorA : colorB)
+    .attr("text-anchor", d => d.diff >= 0 ? "start" : "end")
+    .attr("opacity", 0)
+    .attr("x", x(0));
+
+  diffLabels.transition().duration(600).ease(d3.easeCubicOut)
+    .attr("x", d => d.diff >= 0 ? x(d.diff) + 6 : x(d.diff) - 6)
+    .attr("opacity", 1)
+    .tween("text", function(d) {
+      const node = this;
+      const i = d3.interpolateNumber(0, d.diff);
+      return t => { node.textContent = (i(t) >= 0 ? "+" : "") + i(t).toFixed(2); };
+    });
+
+  // ── Individual value dots (hover or pinned) ───────────────────────────────
+  function showIndividualDots(data) {
+    // Remove existing dots
+    svg.selectAll("g.individual-dots").remove();
+    if (!data) return;
+
+    // Individual scale for the full range
+    const xFull = d3.scaleLinear().domain([-2.8, 2.8]).range([margin.left, width - margin.right]).clamp(true);
+
+    const dotsGroup = svg.append("g").attr("class", "individual-dots");
+
+    // Draw connector line
+    dotsGroup.selectAll("line.ind-connector")
+      .data([data])
+      .join("line")
+      .attr("class", "ind-connector")
+      .attr("x1", xFull(data.valA))
+      .attr("x2", xFull(data.valB))
+      .attr("y1", y(data.key) + y.bandwidth() / 2)
+      .attr("y2", y(data.key) + y.bandwidth() / 2)
+      .attr("stroke", "rgba(255,255,255,.25)")
+      .attr("stroke-width", 2);
+
+    // Dot A
+    dotsGroup.append("circle")
+      .attr("cx", xFull(data.valA))
+      .attr("cy", y(data.key) + y.bandwidth() / 2)
+      .attr("r", 7)
+      .attr("fill", colorA)
+      .attr("stroke", "#0d1118")
+      .attr("stroke-width", 2);
+
+    // Dot B
+    dotsGroup.append("circle")
+      .attr("cx", xFull(data.valB))
+      .attr("cy", y(data.key) + y.bandwidth() / 2)
+      .attr("r", 7)
+      .attr("fill", colorB)
+      .attr("stroke", "#0d1118")
+      .attr("stroke-width", 2);
+
+    // Value labels for both dots
+    dotsGroup.append("text")
+      .attr("x", xFull(data.valA))
+      .attr("y", y(data.key) - 6)
+      .attr("text-anchor", "middle")
+      .attr("font-size", 10)
+      .attr("font-weight", 800)
+      .attr("fill", colorA)
+      .text(signed(data.valA));
+
+    dotsGroup.append("text")
+      .attr("x", xFull(data.valB))
+      .attr("y", y(data.key) - 6)
+      .attr("text-anchor", "middle")
+      .attr("font-size", 10)
+      .attr("font-weight", 800)
+      .attr("fill", colorB)
+      .text(signed(data.valB));
+  }
+
+  // If pinned, draw all individual dots
+  if (compareState.showIndividual) {
+    const xFull = d3.scaleLinear().domain([-2.8, 2.8]).range([margin.left, width - margin.right]).clamp(true);
+    const allDotsGroup = svg.append("g").attr("class", "individual-dots");
+
+    diffs.forEach(d => {
+      allDotsGroup.append("line")
+        .attr("x1", xFull(d.valA)).attr("x2", xFull(d.valB))
+        .attr("y1", y(d.key) + y.bandwidth() / 2).attr("y2", y(d.key) + y.bandwidth() / 2)
+        .attr("stroke", "rgba(255,255,255,.20)").attr("stroke-width", 1.5);
+
+      allDotsGroup.append("circle")
+        .attr("cx", xFull(d.valA)).attr("cy", y(d.key) + y.bandwidth() / 2)
+        .attr("r", 6).attr("fill", colorA).attr("stroke", "#0d1118").attr("stroke-width", 2);
+
+      allDotsGroup.append("circle")
+        .attr("cx", xFull(d.valB)).attr("cy", y(d.key) + y.bandwidth() / 2)
+        .attr("r", 6).attr("fill", colorB).attr("stroke", "#0d1118").attr("stroke-width", 2);
+
+      allDotsGroup.append("text")
+        .attr("x", xFull(d.valA)).attr("y", y(d.key) - 5)
+        .attr("text-anchor", "middle").attr("font-size", 10).attr("font-weight", 800).attr("fill", colorA)
+        .text(signed(d.valA));
+
+      allDotsGroup.append("text")
+        .attr("x", xFull(d.valB)).attr("y", y(d.key) + y.bandwidth() + 13)
+        .attr("text-anchor", "middle").attr("font-size", 10).attr("font-weight", 800).attr("fill", colorB)
+        .text(signed(d.valB));
+    });
+  }
+
+  // ── Hover interaction on bar rows ─────────────────────────────────────────
+  const hitAreas = svg.selectAll("rect.h2h-hit")
+    .data(diffs)
+    .join("rect")
+    .attr("class", "h2h-hit")
+    .attr("x", margin.left)
+    .attr("y", d => y(d.key) - (y.step() - barHeight) / 2)
+    .attr("width", width - margin.left - margin.right)
+    .attr("height", y.step())
+    .attr("fill", "transparent")
+    .attr("cursor", "crosshair")
+    .on("mousemove", (event, d) => {
+      const modeLabel = compareState.mode === "genre" ? "genre z-score" : "popularity gap";
+      showTooltip(event, `
+        <strong>${featureByKey(d.key).label}</strong><br>
+        <span style="color:${colorA}">▲ ${titleCase(state.compareGenreA)}: ${signed(d.valA)}</span><br>
+        <span style="color:${colorB}">▲ ${titleCase(state.compareGenreB)}: ${signed(d.valB)}</span><br>
+        <em>Δ ${signed(d.diff)} ${modeLabel}</em>
+      `);
+      if (!compareState.showIndividual) showIndividualDots(d);
+    })
+    .on("mouseleave", () => {
+      hideTooltip();
+      if (!compareState.showIndividual) showIndividualDots(null);
+    });
+
+  // ── Mode subtitle ─────────────────────────────────────────────────────────
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", height - 6)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#6b7280")
+    .attr("font-size", 11)
+    .attr("font-weight", 700)
+    .text(compareState.mode === "genre"
+      ? "Genre identity — z-score vs all genres · positive = Genre A leads"
+      : "Popularity shift — top-third vs bottom-third within genre · positive = Genre A leads");
 }
 
 function renderCompareMusic() {
@@ -482,91 +782,7 @@ function renderCompareMusic() {
   document.querySelector("#compare-music").innerHTML = html;
 }
 
-function drawComparisonChart(selector, rows, mode) {
-  const host = d3.select(selector).html("");
-  const width = 680;
-  const height = 468;
-  const margin = { top: 28, right: 84, bottom: 42, left: 158 };
-  const svg = host.append("svg").attr("viewBox", [0, 0, width, height]).attr("width", "100%");
-  const keys = activeFeatureKeys;
-  const x = d3.scaleLinear().domain([-2.8, 2.8]).range([margin.left, width - margin.right]).clamp(true);
-  const y = d3.scaleBand().domain(keys).range([margin.top, height - margin.bottom]).padding(0.28);
-  const colors = new Map([[state.compareGenreA, "#1ed760"], [state.compareGenreB, "#55c7ff"]]);
 
-  svg.append("line").attr("x1", x(0)).attr("x2", x(0)).attr("y1", margin.top - 10).attr("y2", height - margin.bottom).attr("stroke", "rgba(255,255,255,.34)").attr("stroke-dasharray", "4,4");
-  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(5));
-  svg.append("g").selectAll("text")
-    .data(keys)
-    .join("text")
-    .attr("x", margin.left - 18)
-    .attr("y", d => y(d) + y.bandwidth() / 2)
-    .attr("dy", "0.32em")
-    .attr("text-anchor", "end")
-    .attr("fill", "#9da7b7")
-    .attr("font-weight", 750)
-    .text(d => featureByKey(d).label);
-
-  const pairs = keys.flatMap(key => rows.map(row => ({ key, genre: row.genre, value: row[key] })));
-  svg.selectAll("line.connector")
-    .data(keys)
-    .join("line")
-    .attr("x1", key => x(rows[0][key]))
-    .attr("x2", key => x(rows[1][key]))
-    .attr("y1", key => y(key) + y.bandwidth() / 2)
-    .attr("y2", key => y(key) + y.bandwidth() / 2)
-    .attr("stroke", "rgba(255,255,255,.16)")
-    .attr("stroke-width", 4);
-
-  const [xMin, xMax] = x.domain();
-  const dotGroups = svg.selectAll("g.dot-group")
-    .data(pairs)
-    .join("g")
-    .attr("class", "dot-group")
-    .attr("transform", d => `translate(${x(0)},${y(d.key) + y.bandwidth() / 2})`)
-    .on("mousemove", (event, d) => {
-      const clamped = d.value < xMin || d.value > xMax;
-      showTooltip(event, `${titleCase(d.genre)}<br>${featureByKey(d.key).label}: ${signed(d.value)} ${mode === "popular" ? "popularity gap" : "genre z"}${clamped ? "<br><em style='color:#f8c14a'>Value exceeds chart range</em>" : ""}`);
-    })
-    .on("mouseleave", hideTooltip);
-
-  dotGroups.append("circle")
-    .attr("r", 7)
-    .attr("fill", d => colors.get(d.genre))
-    .attr("stroke", "#0d1118")
-    .attr("stroke-width", 2);
-
-  // Arrow tip for clamped values (pointing outward)
-  const arrowSize = 6;
-  dotGroups.append("polygon")
-    .attr("class", "clamp-arrow")
-    .attr("fill", d => colors.get(d.genre))
-    .attr("opacity", 0)
-    .attr("points", d => {
-      const dir = d.value > xMax ? 1 : -1;
-      // Triangle pointing outward from the dot
-      return [
-        [10 * dir, 0],
-        [10 * dir + arrowSize * dir, -arrowSize * 0.7],
-        [10 * dir + arrowSize * dir, arrowSize * 0.7]
-      ].map(p => p.join(",")).join(" ");
-    });
-
-  dotGroups.transition()
-    .duration(700)
-    .attr("transform", d => `translate(${x(d.value)},${y(d.key) + y.bandwidth() / 2})`)
-    .on("end", function(d) {
-      const clamped = d.value < xMin || d.value > xMax;
-      d3.select(this).select(".clamp-arrow")
-        .attr("opacity", clamped ? 1 : 0);
-    });
-
-  const legend = svg.append("g").attr("transform", `translate(${width - 74},${margin.top})`);
-  rows.forEach((row, i) => {
-    const g = legend.append("g").attr("transform", `translate(0,${i * 26})`);
-    g.append("circle").attr("r", 6).attr("fill", colors.get(row.genre));
-    g.append("text").attr("x", 12).attr("dy", "0.35em").attr("fill", "#f6f7fb").attr("font-size", 12).attr("font-weight", 750).text(titleCase(row.genre));
-  });
-}
 
 function updateRankDetailBox() {
   const box = document.querySelector("#rank-detail-box");

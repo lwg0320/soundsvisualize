@@ -472,6 +472,7 @@ select {
   padding: 10px 6px 10px 12px;
 }
 
+/* old two-pane layout (kept for reference, now replaced) */
 .comparison-board {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -481,6 +482,35 @@ select {
 .comparison-pane {
   min-height: 520px;
   padding: 18px;
+}
+
+/* ── New head-to-head compare UI ── */
+.compare-genre-selects {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.vs-badge {
+  padding: 0 4px 8px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #9da7b7;
+  letter-spacing: .08em;
+}
+
+.compare-view-toggles {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.head2head-pane {
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 20px 18px 14px;
 }
 
 .pane-detail-btn {

@@ -293,52 +293,31 @@
           <div class="section-head">
             <h2>Head-to-head genre comparison</h2>
             <p>
-              The left side compares genre identity against the broader field. The right side
-              shows what changes inside each genre when songs become more popular.
+              Each bar shows how much Genre A outscores Genre B on a trait — bars pointing right mean A leads, bars pointing left mean B leads.
+              Toggle between <strong style="color:white">Genre identity</strong> (vs. all genres) and <strong style="color:white">Popularity shift</strong> (what changes when songs get popular).
+              Hover any bar to see individual values, or click <strong style="color:white">Show individual values</strong> to pin them.
             </p>
           </div>
           <div class="compare-controls">
-            <label>
-              Genre A
-              <select id="compare-genre-a"></select>
-            </label>
-            <label>
-              Genre B
-              <select id="compare-genre-b"></select>
-            </label>
+            <div class="compare-genre-selects">
+              <label>
+                Genre A
+                <select id="compare-genre-a"></select>
+              </label>
+              <div class="vs-badge">VS</div>
+              <label>
+                Genre B
+                <select id="compare-genre-b"></select>
+              </label>
+            </div>
+            <div class="compare-view-toggles">
+              <button id="compare-mode-genre" class="ghost-button active" type="button">Genre identity</button>
+              <button id="compare-mode-pop" class="ghost-button" type="button">Popularity shift</button>
+              <button id="compare-show-individual" class="ghost-button" type="button">Show individual values</button>
+            </div>
           </div>
-          <div class="comparison-board">
-            <div class="comparison-pane">
-              <div class="pane-title">
-                <span>Genre fingerprint</span>
-                <small>More or less than other genres</small>
-              </div>
-              <button class="pane-detail-btn" aria-expanded="false" aria-controls="genre-explainer">What does this show?</button>
-              <p class="pane-explainer" id="genre-explainer" hidden>
-                Each bar shows how a genre scores on that trait relative to the average across
-                all genres, expressed as a z-score. A positive value means the genre sits above
-                average — for example, a high Energy bar means songs in that genre are measurably
-                more intense than most. A negative value means below average. This is about
-                <em>identity</em>: what makes a genre sound like itself compared to everything else.
-              </p>
-              <div id="genre-compare-chart"></div>
-            </div>
-            <div class="comparison-pane">
-              <div class="pane-title">
-                <span>Popularity fingerprint</span>
-                <small>Top third versus bottom third inside the genre</small>
-              </div>
-              <button class="pane-detail-btn" aria-expanded="false" aria-controls="pop-explainer">What does this show?</button>
-              <p class="pane-explainer" id="pop-explainer" hidden>
-                Each bar shows the difference in that trait between the most popular songs and
-                the least popular songs <em>within the same genre</em>. A positive value means
-                the genre's hits score higher on that trait than its deep cuts — for example, a
-                high Danceability bar means popular songs in that genre are noticeably more
-                danceable than obscure ones. This is about <em>what pushes songs to the top</em>
-                inside a genre, not how the genre compares to others.
-              </p>
-              <div id="pop-compare-chart"></div>
-            </div>
+          <div class="head2head-pane">
+            <div id="head2head-chart"></div>
           </div>
           <div class="music-strip" id="compare-music"></div>
         </section>
